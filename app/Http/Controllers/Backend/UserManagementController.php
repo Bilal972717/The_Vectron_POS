@@ -99,6 +99,9 @@ class UserManagementController extends Controller
 
     public function suspend($id, $status)
     {
+        if (demoUserCheck()) {
+            return back()->with('error', 'Cannot update details of demo user');
+        }
         abort_if(!auth()->user()->can('user_suspend'), 403);
         $user = User::findOrFail($id);
 
@@ -115,7 +118,8 @@ class UserManagementController extends Controller
     public function create(Request $request)
     {
         abort_if(!auth()->user()->can(
-        'user_create'), 403);
+            'user_create'
+        ), 403);
         if ($request->isMethod('post')) {
             $request->validate([
                 'name' => 'required',
@@ -148,6 +152,10 @@ class UserManagementController extends Controller
 
     public function edit(Request $request, $id)
     {
+        if (demoUserCheck()) {
+            return back()->with('error', 'Cannot update details of demo user');
+        }
+
         abort_if(!auth()->user()->can('user_update'), 403);
 
         $user = User::with('roles')->findOrFail($id);
@@ -184,7 +192,7 @@ class UserManagementController extends Controller
 
             $role = Role::find($request->role);
             $user->syncRoles($role);
-            
+
             return to_route('backend.admin.users')->with('success', 'User updated successfully');
         } else {
             if ($id == auth()->id()) {

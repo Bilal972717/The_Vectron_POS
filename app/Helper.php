@@ -1,11 +1,10 @@
 <?php
 
-use App\Models\Currency;
 use App\Models\Page;
-use App\Models\Setting;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Currency;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 if (!function_exists('imageRecover')) {
 
@@ -120,5 +119,15 @@ if (!function_exists('currency')) {
         return Cache::remember('default_currency', 60 * 24, function () {
             return Currency::where('active', true)->first();
         });
+    }
+}
+
+if (!function_exists('demoUserCheck')) {
+    function demoUserCheck()
+    {
+        if (Auth::user()->email == 'demo@qtecsolution.net') {
+            return true;
+        }
+        return false;
     }
 }

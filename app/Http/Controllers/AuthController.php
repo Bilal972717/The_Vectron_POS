@@ -49,17 +49,16 @@ class AuthController extends Controller
             $credentials['password'] = $request->password;
             $credentials['remember'] = $remember;
             $credentials['previous_url'] = $request->previous_url;
-            
+
             $valid = Arr::only($credentials, ['email', 'password']);
 
             if (Auth::attempt($valid, $credentials['remember'])) {
                 session()->regenerate();
-        
+
                 return $this->redirectUser();
             } else {
                 return redirect()->route('login')->with('error', 'Incorrect email or password');
             }
-
         } else {
             if (auth()->user()) {
                 return $this->redirectUser();
@@ -84,12 +83,12 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password),
                 'username' => uniqid(),
             ]);
-            
+
             if ($newUser) {
                 $request->session()->regenerate();
                 Auth::login($newUser);
                 return redirect()->route('backend.admin.dashboard')->with('success', 'User registered successfully');
-             } else {
+            } else {
                 return back()->with('error', 'Something went wrong');
             }
         } else {
@@ -239,6 +238,10 @@ class AuthController extends Controller
 
     public function update(Request $request)
     {
+        if (demoUserCheck()) {
+            return back()->with('error', 'Cannot update details of demo user');
+        }
+
         $user = User::find(auth()->id());
         // dd($request->all());
         $request->validate([

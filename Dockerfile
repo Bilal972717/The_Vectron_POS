@@ -1,6 +1,7 @@
-# Use official PHP CLI image instead of FPM
+# Use PHP CLI (built-in server) instead of FPM
 FROM php:8.2-cli
 
+# Set working directory
 WORKDIR /var/www
 
 # Install system dependencies
@@ -12,14 +13,14 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy the application code
+# Copy application code
 COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-interaction --optimize-autoloader
 
-# Expose the port Railway will use
+# Expose port (good practice, Railway sets actual $PORT)
 EXPOSE 8080
 
-# Start PHP built-in server on Railway's $PORT
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t public"]
+# Start PHP built-in server bound to Railway's $PORT
+CMD sh -c "php -S 0.0.0.0:${PORT:-8080} -t public"

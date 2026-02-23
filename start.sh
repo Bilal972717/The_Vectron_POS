@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# Wait a few seconds for the database to be ready
+# Wait for MySQL to be ready
+echo "Waiting for database..."
 sleep 10
 
-# Run migrations
+# Run migrations safely
 php artisan migrate --force
 
 # Clear and cache config
 php artisan config:cache
 
-# Start PHP-FPM
-php-fpm
+# Start Laravel server
+php artisan serve --host=0.0.0.0 --port=8000

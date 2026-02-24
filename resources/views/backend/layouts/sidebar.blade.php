@@ -21,7 +21,7 @@ $route = request()->route()->getName();
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             @can('dashboard_view')
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a href="{{ route('backend.admin.dashboard') }}"
                     class="nav-link {{ $route === 'backend.admin.dashboard' ? 'active' : '' }}">
                     <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -29,10 +29,10 @@ $route = request()->route()->getName();
                         Dashboard
                     </p>
                 </a>
-            </li>
+            </li> -->
             @endcan
             @can('sale_create')
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a href="{{ route('backend.admin.cart.index') }}"
                     class="nav-link {{ $route === 'backend.admin.cart.index' ? 'active' : '' }}">
                     <i class="nav-icon fas fa-cart-plus"></i>
@@ -40,7 +40,7 @@ $route = request()->route()->getName();
                         POS
                     </p>
                 </a>
-            </li>
+            </li> -->
             @endcan
             @if (auth()->user()->hasAnyPermission([
             //customer
@@ -55,7 +55,7 @@ $route = request()->route()->getName();
             'supplier_update',
             'supplier_delete',
             ]))
-            <li class="nav-item {{ request()->routeIs(['backend.admin.customers.index', 'backend.admin.customers.create', 'backend.admin.customers.edit','backend.admin.suppliers.index', 'backend.admin.suppliers.create', 'backend.admin.suppliers.edit']) ? 'menu-open' : '' }}">
+            <!-- <li class="nav-item {{ request()->routeIs(['backend.admin.customers.index', 'backend.admin.customers.create', 'backend.admin.customers.edit','backend.admin.suppliers.index', 'backend.admin.suppliers.create', 'backend.admin.suppliers.edit']) ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link">
                     <i class="fas fa-user-circle nav-icon"></i>
                     <p>
@@ -85,7 +85,7 @@ $route = request()->route()->getName();
                     </li>
                     @endif
                 </ul>
-            </li>
+            </li> -->
             @endif
             @if (auth()->user()->hasAnyPermission([
             'product_create',
@@ -165,7 +165,7 @@ $route = request()->route()->getName();
             @if (auth()->user()->hasAnyPermission([
             'sale_view'
             ]))
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a href="#" class="nav-link {{ request()->routeIs(['backend.admin.orders.index', 'backend.admin.orders.create', 'backend.admin.orders.edit']) ? 'menu-open' : '' }}">
                     <i class="fas fa-tags nav-icon"></i>
                     <p>
@@ -184,7 +184,7 @@ $route = request()->route()->getName();
                     </li>
                     @endcan
                 </ul>
-            </li>
+            </li> -->
             @endif
             @if (auth()->user()->hasAnyPermission([
             'purchase_create',
@@ -192,7 +192,7 @@ $route = request()->route()->getName();
             'purchase_update',
             'purchase_delete',
             ]))
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a href="#" class="nav-link {{ request()->routeIs(['backend.admin.purchase.index', 'backend.admin.purchase.create', 'backend.admin.purchase.edit']) ? 'menu-open' : '' }}">
                     <i class="fas fa-shopping-bag nav-icon"></i>
                     <p>
@@ -220,14 +220,14 @@ $route = request()->route()->getName();
                     </li>
                     @endcan
                 </ul>
-            </li>
+            </li> -->
             @endif
             @if (auth()->user()->hasAnyPermission([
             'reports_summary',
             'reports_sales',
             'reports_inventory',
             ]))
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a href="#" class="nav-link {{ request()->routeIs(['backend.admin.sale.report','backend.admin.sale.summery']) ? 'menu-open' : '' }}">
                     <i class="fas fa-chart-bar nav-icon"></i>
                     <p>
@@ -264,7 +264,7 @@ $route = request()->route()->getName();
                     </li>
                     @endcan
                 </ul>
-            </li>
+            </li> -->
             @endif
             {{-- settings --}}
             @if (auth()->user()->hasAnyPermission([
@@ -296,7 +296,7 @@ $route = request()->route()->getName();
             'website_status_settings',
             'invoice_settings',
             ]))
-            <li class="nav-header">SETTINGS</li>
+            <!-- <li class="nav-header">SETTINGS</li>
 
             <li class="nav-item">
                 <a href="#" class="nav-link">
@@ -390,7 +390,7 @@ $route = request()->route()->getName();
                     </li>
                     @endif
                 </ul>
-            </li>
+            </li> -->
             @endif
         </ul>
     </nav>

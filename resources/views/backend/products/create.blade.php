@@ -56,6 +56,18 @@
               @endforeach
             </select>
           </div>
+          {{-- Feature 5: Sub-category --}}
+          <div class="mb-3 col-md-6">
+            <label class="form-label">Sub-Category <small class="text-muted">(optional)</small></label>
+            <select class="form-control select2" style="width: 100%;" name="sub_category_id">
+              <option value="">Select Sub-Category</option>
+              @foreach ($categories as $item)
+              <option value="{{ $item->id }}" {{ old('sub_category_id') == $item->id ? 'selected' : '' }}>
+                {{ $item->name }}
+              </option>
+              @endforeach
+            </select>
+          </div>
           <div class="mb-3 col-md-6">
             <label for="price" class="form-label">
               Price

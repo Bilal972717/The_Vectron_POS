@@ -4,7 +4,18 @@
 
 @section('content')
 <div class="card">
-  <div class="mt-n5 mb-3 d-flex justify-content-end">
+  <div class="mt-n5 mb-3 d-flex justify-content-end gap-2">
+    {{-- Feature 9: Credit-only filter --}}
+    <form method="GET" action="{{ route('backend.admin.sale.report') }}" class="d-flex align-items-center mr-2">
+      <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+      <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+      <div class="custom-control custom-switch mr-2">
+        <input type="checkbox" class="custom-control-input" id="creditOnly" name="credit_only" value="1"
+          @if($credit_only ?? false) checked @endif
+          onchange="this.form.submit()">
+        <label class="custom-control-label" for="creditOnly">Credit Customers Only</label>
+      </div>
+    </form>
     <div class="form-group">
       <div class="input-group">
         <button type="button" class="btn btn-default float-right" id="daterange-btn">
@@ -135,7 +146,7 @@
         $('#daterange-btn span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
 
         // Redirect with selected start and end dates
-        window.location.href = '{{ route("backend.admin.sale.report") }}?start_date=' + start.format('YYYY-MM-DD') + '&end_date=' + end.format('YYYY-MM-DD');
+        window.location.href = '{{ route("backend.admin.sale.report") }}?start_date=' + start.format('YYYY-MM-DD') + '&end_date=' + end.format('YYYY-MM-DD') + ({{ ($credit_only ?? false) ? 'true' : 'false' }} ? '&credit_only=1' : '');
       }
     );
 

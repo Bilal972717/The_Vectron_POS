@@ -27,8 +27,15 @@ class ReportController extends Controller
         // Parse and set end date
         $end_date = Carbon::createFromFormat('Y-m-d', $end_date_input) ?: Carbon::today()->endOfDay();
         $end_date = $end_date->endOfDay();
-        // Retrieve orders within the date range
-        $orders = Order::whereBetween('created_at', [$start_date, $end_date])->with('customer')->get();
+
+        // Feature 9: filter credit-only (due > 0 / status = 0) customers
+        $creditOnly = $request->boolean('credit_only');
+
+        $ordersQuery = Order::whereBetween('created_at', [$start_date, $end_date])->with('customer');
+        if ($creditOnly) {
+            $ordersQuery->where('status', 0); // 0 = Due (credit purchase)
+        }
+        $orders = $ordersQuery->get();
 
         // Calculate totals
         $data = [
@@ -40,9 +47,85 @@ class ReportController extends Controller
             'total' => $orders->sum('total'),
             'start_date' => $start_date->format('M d, Y'),
             'end_date' => $end_date->format('M d, Y'),
+            'credit_only' => $creditOnly,
         ];
 
         return view('backend.reports.sale-report', $data);
+    }
+
+    /**
+     * Feature 4: Due payments report by customer name and city.
+     */
+    public function duePaymentsReport(Request $request)
+    {
+        abort_if(!auth()->user()->can('reports_sales'), 403);
+
+        $search = $request->input('search', '');
+        $city   = $request->input('city', '');
+
+        $query = \App\Models\Customer::with(['orders' => function ($q) {
+            $q->where('status', 0)->where('due', '>', 0);
+        }])->whereHas('orders', function ($q) {
+            $q->where('status', 0)->where('due', '>', 0);
+        });
+
+        if ($search) {
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+        if ($city) {
+            $query->where('city', 'LIKE', "%{$city}%");
+        }
+
+        $customers = $query->get()->map(function ($customer) {
+            $customer->total_due = $customer->orders->sum('due');
+            $customer->total_paid = $customer->orders->sum('paid');
+            return $customer;
+        });
+
+        $cities = \App\Models\Customer::whereNotNull('city')->distinct()->pluck('city');
+
+        return view('backend.reports.due-payments', compact('customers', 'search', 'city', 'cities'));
+    }
+
+    /**
+     * Feature 8: Sales Ledger by specific customer and date range.
+     */
+    public function salesLedger(Request $request)
+    {
+        abort_if(!auth()->user()->can('reports_sales'), 403);
+
+        $customer_id = $request->input('customer_id');
+        $start_date_input = $request->input('start_date', Carbon::today()->subDays(29)->format('Y-m-d'));
+        $end_date_input   = $request->input('end_date', Carbon::today()->format('Y-m-d'));
+
+        $start_date = Carbon::createFromFormat('Y-m-d', $start_date_input)->startOfDay();
+        $end_date   = Carbon::createFromFormat('Y-m-d', $end_date_input)->endOfDay();
+
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $orders = collect();
+        $customer = null;
+
+        if ($customer_id) {
+            $customer = \App\Models\Customer::find($customer_id);
+            $orders = Order::with(['products.product'])
+                ->where('customer_id', $customer_id)
+                ->whereBetween('created_at', [$start_date, $end_date])
+                ->orderBy('created_at')
+                ->get();
+        }
+
+        $totals = [
+            'sub_total' => $orders->sum('sub_total'),
+            'discount'  => $orders->sum('discount'),
+            'total'     => $orders->sum('total'),
+            'paid'      => $orders->sum('paid'),
+            'due'       => $orders->sum('due'),
+        ];
+
+        return view('backend.reports.sales-ledger', compact(
+            'customers', 'orders', 'customer', 'totals',
+            'start_date', 'end_date', 'customer_id'
+        ));
     }
     public function saleSummery(Request $request)
     {

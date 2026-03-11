@@ -270,6 +270,24 @@ $route = request()->route()->getName();
                         </a>
                     </li>
                     @endcan
+                    {{-- Feature 4: Due Payments Report --}}
+                    @can('reports_sales')
+                    <li class="nav-item">
+                        <a href="{{route('backend.admin.due.payments.report')}}"
+                            class="nav-link {{ request()->routeIs(['backend.admin.due.payments.report']) ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i>
+                            <p>Due Payments</p>
+                        </a>
+                    </li>
+                    {{-- Feature 8: Sales Ledger --}}
+                    <li class="nav-item">
+                        <a href="{{route('backend.admin.sales.ledger')}}"
+                            class="nav-link {{ request()->routeIs(['backend.admin.sales.ledger']) ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i>
+                            <p>Sales Ledger</p>
+                        </a>
+                    </li>
+                    @endcan
                 </ul>
             </li> 
             @endif

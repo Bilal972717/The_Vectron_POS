@@ -18,6 +18,13 @@ export default function Pos() {
     const [total, setTotal] = useState(0);
     const [updateTotal, setUpdateTotal] = useState(0);
     const [customerId, setCustomerId] = useState();
+    // Feature 11: promised payment date
+    const [promisedPaymentDate, setPromisedPaymentDate] = useState("");
+    // Feature 12: delivery status
+    const [isDelivered, setIsDelivered] = useState(false);
+    const [deliveryNote, setDeliveryNote] = useState("");
+    // Feature 2: manual prices per cart item (keyed by product_id)
+    const [manualPrices, setManualPrices] = useState({});
     const [cartUpdated, setCartUpdated] = useState(false);
     const [productUpdated, setProductUpdated] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -206,6 +213,13 @@ export default function Pos() {
                         customer_id: customerId,
                         order_discount: parseFloat(orderDiscount) || 0,
                         paid: parseFloat(paid) || 0,
+                        // Feature 11: promised payment date
+                        promised_payment_date: promisedPaymentDate || null,
+                        // Feature 12: delivery status
+                        is_delivered: isDelivered ? 1 : 0,
+                        delivery_note: deliveryNote || null,
+                        // Feature 2: manual prices
+                        manual_prices: manualPrices,
                     })
                     .then((res) => {
                         setCartUpdated(!cartUpdated);
@@ -267,6 +281,8 @@ export default function Pos() {
                                 carts={carts}
                                 setCartUpdated={setCartUpdated}
                                 cartUpdated={cartUpdated}
+                                manualPrices={manualPrices}
+                                setManualPrices={setManualPrices}
                             />
                             <div className="card">
                                 <div className="card-body">
@@ -363,6 +379,44 @@ export default function Pos() {
                                             {due}
                                         </div>
                                     </div>
+                                    {/* Feature 11: Promised payment date */}
+                                    <div className="row text-bold mb-1 mt-2">
+                                        <div className="col">Pay By Date:</div>
+                                        <div className="col text-right mr-2">
+                                            <input
+                                                type="date"
+                                                className="form-control form-control-sm"
+                                                value={promisedPaymentDate}
+                                                onChange={(e) => setPromisedPaymentDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Feature 12: Delivery status */}
+                                    <div className="row text-bold mb-1">
+                                        <div className="col">Delivered:</div>
+                                        <div className="col text-right mr-2">
+                                            <input
+                                                type="checkbox"
+                                                className="form-control-sm"
+                                                checked={isDelivered}
+                                                onChange={(e) => setIsDelivered(e.target.checked)}
+                                            />
+                                        </div>
+                                    </div>
+                                    {isDelivered && (
+                                        <div className="row text-bold mb-1">
+                                            <div className="col">Delivery Note:</div>
+                                            <div className="col text-right mr-2">
+                                                <input
+                                                    type="text"
+                                                    className="form-control form-control-sm"
+                                                    placeholder="Delivery note..."
+                                                    value={deliveryNote}
+                                                    onChange={(e) => setDeliveryNote(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="row">

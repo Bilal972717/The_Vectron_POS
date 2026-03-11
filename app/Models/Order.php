@@ -13,6 +13,10 @@ class Order extends Model
 
     protected $guarded = [];
     protected $appends = ['total_item'];
+    protected $casts = [
+        'promised_payment_date' => 'date',
+        'is_delivered' => 'boolean',
+    ];
     public function products()
     {
         return $this->hasMany(OrderProduct::class);

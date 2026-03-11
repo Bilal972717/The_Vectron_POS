@@ -101,9 +101,10 @@ class CustomerController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:customers,phone',
             'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
         ]);
 
-        $customer = Customer::create($request->only(['name', 'phone', 'address']));
+        $customer = Customer::create($request->only(['name', 'phone', 'address', 'city']));
 
         session()->flash('success', 'Customer created successfully.');
         return to_route('backend.admin.customers.index');
@@ -139,11 +140,12 @@ class CustomerController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:customers,phone,' . $customer->id, // Corrected syntax
+            'phone' => 'required|string|max:20|unique:customers,phone,' . $customer->id,
             'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
         ]);
 
-        $customer->update($request->only(['name', 'phone', 'address']));
+        $customer->update($request->only(['name', 'phone', 'address', 'city']));
 
         session()->flash('success', 'Customer updated successfully.');
         return to_route('backend.admin.customers.index');

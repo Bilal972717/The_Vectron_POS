@@ -6,6 +6,8 @@
 <section class="content">
     @can('dashboard_view')
     <div class="container-fluid">
+        {{-- Feature 10: Financial metrics hidden from salesman role --}}
+        @can('reports_sales')
         <div class="row">
             <div class="col-12 col-sm-6 col-md-3">
                 <div class="info-box">
@@ -67,6 +69,7 @@
             </div>
             <!-- /.col -->
         </div>
+        @endcan
 
         <!-- Small boxes (Stat box) -->
         <div class="row">

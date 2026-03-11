@@ -6,7 +6,7 @@ import SuccessSound from "../sounds/beep-07a.mp3";
 import WarningSound from "../sounds/beep-02.mp3";
 import playSound from "../utils/playSound";
 
-export default function Cart({ carts, setCartUpdated, cartUpdated }) {
+export default function Cart({ carts, setCartUpdated, cartUpdated, manualPrices, setManualPrices }) {
     function increment(id) {
         axios
             .put("/admin/cart/increment", {
@@ -82,6 +82,7 @@ export default function Cart({ carts, setCartUpdated, cartUpdated }) {
                                         <th>Quantity</th>
                                         <th></th>
                                         <th>Price</th>
+                                        <th>Manual Price</th>
                                         <th>Total</th>
                                     </tr>
                                 </thead>
@@ -137,6 +138,24 @@ export default function Cart({ carts, setCartUpdated, cartUpdated }) {
                                                 ) : (
                                                     ""
                                                 )}
+                                            </td>
+                                            {/* Feature 2: Manual price override */}
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    className="form-control form-control-sm"
+                                                    placeholder="Override"
+                                                    min={0}
+                                                    style={{ width: "90px" }}
+                                                    value={manualPrices?.[item.product_id] ?? ""}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setManualPrices((prev) => ({
+                                                            ...prev,
+                                                            [item.product_id]: val === "" ? undefined : parseFloat(val),
+                                                        }));
+                                                    }}
+                                                />
                                             </td>
                                             <td className="text-right">
                                                 {item?.row_total}

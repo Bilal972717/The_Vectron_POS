@@ -41,6 +41,7 @@ class UpdateProductRequest extends FormRequest
             ],
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
+            'sub_category_id' => 'nullable|exists:categories,id',
             'brand_id' => 'required|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
             'price' => 'nullable|numeric|min:0',

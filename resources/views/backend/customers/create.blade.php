@@ -33,6 +33,11 @@
             <input type="text" class="form-control" placeholder="Enter Address" name="address"
               value="{{ old('Address') }}">
           </div>
+          {{-- Feature 4: City field for due payments filtering --}}
+          <div class="mb-3 col-md-6">
+            <label class="form-label">City</label>
+            <input type="text" class="form-control" placeholder="Enter City" name="city" value="{{ old('city') }}">
+          </div>
         </div>
         <div class="row">
           <div class="col-md-6">

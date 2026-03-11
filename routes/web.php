@@ -85,7 +85,15 @@ Route::prefix('admin')->as('backend.admin.')->middleware(['admin'])->group(funct
     Route::get('/sale/summery', [ReportController::class, 'saleSummery'])->name('sale.summery');
     Route::get('/sale/report', [ReportController::class, 'saleReport'])->name('sale.report');
     Route::get('/inventory/report', [ReportController::class, 'inventoryReport'])->name('inventory.report');
+    // Feature 4: Due payments report
+    Route::get('/due-payments/report', [ReportController::class, 'duePaymentsReport'])->name('due.payments.report');
+    // Feature 8: Sales ledger by customer
+    Route::get('/sales/ledger', [ReportController::class, 'salesLedger'])->name('sales.ledger');
     //end report
+
+    // Feature 1 & 7: Returns
+    Route::get('/orders/return/{id}', [\App\Http\Controllers\Backend\Pos\ReturnController::class, 'create'])->name('orders.return');
+    Route::post('/orders/return/{id}', [\App\Http\Controllers\Backend\Pos\ReturnController::class, 'store'])->name('orders.return.store');
    // start pos
     Route::get('/get/products', [CartController::class, 'getProducts'])->name('getProducts');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

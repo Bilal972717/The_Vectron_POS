@@ -68,7 +68,7 @@ class OrderController extends Controller
             'customer_id' => [
                 'required',
                 'exists:customers,id',
-                'integer', // Ensure customer_id is an integer
+                'integer',
             ],
             'order_discount' => [
                 'nullable',
@@ -80,6 +80,14 @@ class OrderController extends Controller
                 'numeric',
                 'min:0',
             ],
+            // Feature 11: promised payment date
+            'promised_payment_date' => ['nullable', 'date'],
+            // Feature 12: delivery status
+            'is_delivered' => ['nullable', 'boolean'],
+            'delivery_note' => ['nullable', 'string', 'max:255'],
+            // Feature 2: manual prices per product keyed by product_id
+            'manual_prices' => ['nullable', 'array'],
+            'manual_prices.*' => ['nullable', 'numeric', 'min:0'],
         ], [
             'customer_id.required' => 'Please select a customer.',
             'customer_id.exists' => 'The selected customer does not exist.',
@@ -90,17 +98,31 @@ class OrderController extends Controller
         $order = Order::create([
             'customer_id' => $request->customer_id,
             'user_id' => $request->user()->id,
+            // Feature 11
+            'promised_payment_date' => $request->promised_payment_date,
+            // Feature 12
+            'is_delivered' => $request->boolean('is_delivered'),
+            'delivery_note' => $request->delivery_note,
         ]);
         $totalAmountOrder = 0;
         $orderDiscount = $request->order_discount;
+        $manualPrices = $request->manual_prices ?? [];
         foreach ($carts as $cart) {
+            // Feature 2: use manual price if provided for this product
+            $manualPrice = isset($manualPrices[$cart->product_id])
+                ? (float)$manualPrices[$cart->product_id]
+                : null;
+            $effectivePrice = ($manualPrice !== null && $manualPrice >= 0)
+                ? $manualPrice
+                : $cart->product->discounted_price;
             $mainTotal = $cart->product->price * $cart->quantity;
-            $totalAfterDiscount = $cart->product->discounted_price * $cart->quantity;
+            $totalAfterDiscount = $effectivePrice * $cart->quantity;
             $discount = $mainTotal - $totalAfterDiscount;
             $totalAmountOrder += $totalAfterDiscount;
             $order->products()->create([
                 'quantity' => $cart->quantity,
                 'price' => $cart->product->price,
+                'manual_price' => $manualPrice,
                 'purchase_price' => $cart->product->purchase_price,
                 'sub_total' => $mainTotal,
                 'discount' => $discount,
@@ -167,7 +189,10 @@ class OrderController extends Controller
     public function invoice($id)
     {
         $order = Order::with(['customer', 'products.product'])->findOrFail($id);
-        return view('backend.orders.print-invoice', compact('order'));
+        // Feature 6: increment print count so reprints show "Duplicate"
+        $order->increment('print_count');
+        $isDuplicate = $order->print_count > 1;
+        return view('backend.orders.print-invoice', compact('order', 'isDuplicate'));
     }
     public function collection(Request $request, $id)
     {
@@ -217,7 +242,9 @@ class OrderController extends Controller
     public function posInvoice($id)
     {
         $order = Order::with(['customer', 'products.product'])->findOrFail($id);
+        $order->increment('print_count');
+        $isDuplicate = $order->print_count > 1;
         $maxWidth = readConfig('receiptMaxwidth')??'300px';
-        return view('backend.orders.pos-invoice', compact('order', 'maxWidth'));
+        return view('backend.orders.pos-invoice', compact('order', 'maxWidth', 'isDuplicate'));
     }
 }

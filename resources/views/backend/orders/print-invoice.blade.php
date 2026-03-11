@@ -66,6 +66,8 @@
             <span class="badge badge-warning">Pending</span>
           @endif
           @if($order->delivery_note)<br><small>{{ $order->delivery_note }}</small>@endif
+          @if($order->packer)<br><b>Packed by:</b> {{ $order->packer->name }}@endif
+          @if($order->deliverer)<br><b>Delivered by:</b> {{ $order->deliverer->name }}@endif
         </div>
       </div>
 

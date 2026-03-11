@@ -25,6 +25,10 @@ export default function Pos() {
     const [deliveryNote, setDeliveryNote] = useState("");
     // Feature 2: manual prices per cart item (keyed by product_id)
     const [manualPrices, setManualPrices] = useState({});
+    // Staff packer & deliverer
+    const [staffList, setStaffList] = useState([]);
+    const [packedBy, setPackedBy] = useState("");
+    const [deliveredBy, setDeliveredBy] = useState("");
     const [cartUpdated, setCartUpdated] = useState(false);
     const [productUpdated, setProductUpdated] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +90,11 @@ export default function Pos() {
 
     useEffect(() => {
         getCarts();
+    }, []);
+
+    useEffect(() => {
+        // Load staff list for packer/deliverer dropdowns
+        axios.get('/admin/hr/staff/list').then(res => setStaffList(res.data)).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -220,6 +229,9 @@ export default function Pos() {
                         delivery_note: deliveryNote || null,
                         // Feature 2: manual prices
                         manual_prices: manualPrices,
+                        // Staff
+                        packed_by: packedBy || null,
+                        delivered_by: deliveredBy || null,
                     })
                     .then((res) => {
                         setCartUpdated(!cartUpdated);
@@ -416,6 +428,29 @@ export default function Pos() {
                                                 />
                                             </div>
                                         </div>
+                                    )}
+                                    {/* Staff: Packed By */}
+                                    {staffList.length > 0 && (
+                                        <>
+                                        <div className="row text-bold mb-1">
+                                            <div className="col">Packed By:</div>
+                                            <div className="col text-right mr-2">
+                                                <select className="form-control form-control-sm" value={packedBy} onChange={e => setPackedBy(e.target.value)}>
+                                                    <option value="">— Select —</option>
+                                                    {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="row text-bold mb-1">
+                                            <div className="col">Delivered By:</div>
+                                            <div className="col text-right mr-2">
+                                                <select className="form-control form-control-sm" value={deliveredBy} onChange={e => setDeliveredBy(e.target.value)}>
+                                                    <option value="">— Select —</option>
+                                                    {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        </>
                                     )}
                                 </div>
                             </div>

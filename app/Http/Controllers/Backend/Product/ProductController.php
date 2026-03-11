@@ -12,6 +12,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
+use App\Services\BarcodeService;
 use App\Trait\FileHandler;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -107,7 +108,9 @@ class ProductController extends Controller
         $brands = Brand::whereStatus(true)->get();
         $categories = Category::whereStatus(true)->get();
         $units = Unit::all();
-        return view('backend.products.create', compact('brands', 'categories', 'units'));
+        // Auto-generate a unique EAN-13 SKU to pre-fill the form
+        $autoSku = BarcodeService::generateEan13Sku();
+        return view('backend.products.create', compact('brands', 'categories', 'units', 'autoSku'));
     }
 
     /**
@@ -118,6 +121,10 @@ class ProductController extends Controller
 
         abort_if(!auth()->user()->can('product_create'), 403);
         $validated = $request->validated();
+        // If SKU was left empty, generate one
+        if (empty($validated['sku'])) {
+            $validated['sku'] = BarcodeService::generateEan13Sku();
+        }
         $product = Product::create($validated);
         if ($request->hasFile("product_image")) {
             $product->image = $this->fileHandler->fileUploadAndGetPath($request->file("product_image"), "/public/media/products");
@@ -133,6 +140,16 @@ class ProductController extends Controller
     public function show($id)
     {
         //
+    }
+
+    /**
+     * Render barcode SVG for a product (used inline on invoice/label).
+     */
+    public function barcode($id)
+    {
+        $product = Product::findOrFail($id);
+        $svg = BarcodeService::renderSvg($product->sku);
+        return response($svg, 200)->header('Content-Type', 'image/svg+xml');
     }
 
     /**

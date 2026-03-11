@@ -28,6 +28,8 @@
     @endif
     {{-- Feature 12: Delivery status --}}
     Delivery: {{ $order->is_delivered ? 'Delivered' : 'Pending' }}<br>
+    @if($order->packer)Packed by: {{ $order->packer->name }}<br>@endif
+    @if($order->deliverer)Delivered by: {{ $order->deliverer->name }}<br>@endif
     <hr>
     <div class="row justify-content-between mx-auto">
       <div class="text-left">

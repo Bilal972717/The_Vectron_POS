@@ -62,12 +62,19 @@ Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallba
 Route::prefix('admin')->as('backend.admin.')->middleware(['admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('products', ProductController::class);
+    Route::get('products/generate-sku', function() {
+        return response()->json(['sku' => \App\Services\BarcodeService::generateEan13Sku()]);
+    })->name('products.generate-sku');
+    Route::get('products/barcode-svg', function(\Illuminate\Http\Request $r) {
+        $svg = \App\Services\BarcodeService::renderSvg($r->query('sku',''));
+        return response($svg, 200)->header('Content-Type','image/svg+xml');
+    })->name('products.barcode-svg');
+    Route::get('products/barcode/{id}', [ProductController::class, 'barcode'])->name('products.barcode');
     Route::resource('brands', BrandController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('purchase', PurchaseController::class);
     Route::resource('suppliers', SupplierController::class);
     Route::resource('customers', CustomerController::class);
-    Route::resource('products', ProductController::class);
     Route::resource('units', UnitController::class);
     Route::resource('currencies', CurrencyController::class);
     Route::match(['get', 'post'], 'import/products', [ProductController::class,'import'])->name('products.import');
@@ -75,6 +82,7 @@ Route::prefix('admin')->as('backend.admin.')->middleware(['admin'])->group(funct
     Route::get('customers/orders/{id}', [CustomerController::class, 'orders'])->name('customers.orders');
     Route::get('purchase/products/{id}', [PurchaseController::class, 'purchaseProducts'])->name('purchase.products');
     Route::get('orders/invoice/{id}', [OrderController::class,'invoice'])->name('orders.invoice');
+    Route::get('orders/detail/{id}', [OrderController::class,'detail'])->name('orders.detail');
     Route::get('orders/pos-invoice/{id}', [OrderController::class, 'posInvoice'])->name('orders.pos-invoice');
     Route::get('orders/transactions/{id}', [OrderController::class, 'transactions'])->name('orders.transactions');
     Route::match(['get', 'post'], 'orders/due/collection/{id}', [OrderController::class, 'collection'])->name('due.collection');
@@ -94,6 +102,32 @@ Route::prefix('admin')->as('backend.admin.')->middleware(['admin'])->group(funct
     // Feature 1 & 7: Returns
     Route::get('/orders/return/{id}', [\App\Http\Controllers\Backend\Pos\ReturnController::class, 'create'])->name('orders.return');
     Route::post('/orders/return/{id}', [\App\Http\Controllers\Backend\Pos\ReturnController::class, 'store'])->name('orders.return.store');
+
+    // HR: Staff, Attendance, Payroll
+    Route::prefix('hr')->as('hr.')->group(function () {
+        // Staff
+        Route::get('staff', [\App\Http\Controllers\Backend\HR\StaffController::class, 'index'])->name('staff.index');
+        Route::get('staff/create', [\App\Http\Controllers\Backend\HR\StaffController::class, 'create'])->name('staff.create');
+        Route::post('staff', [\App\Http\Controllers\Backend\HR\StaffController::class, 'store'])->name('staff.store');
+        Route::get('staff/{id}/edit', [\App\Http\Controllers\Backend\HR\StaffController::class, 'edit'])->name('staff.edit');
+        Route::put('staff/{id}', [\App\Http\Controllers\Backend\HR\StaffController::class, 'update'])->name('staff.update');
+        // Staff list for POS dropdown
+        Route::get('staff/list', function() {
+            return response()->json(\App\Models\User::whereHas('staffProfile', fn($q) => $q->where('is_active', true))->get(['id','name']));
+        })->name('staff.list');
+        // Attendance
+        Route::get('attendance', [\App\Http\Controllers\Backend\HR\AttendanceController::class, 'index'])->name('attendance.index');
+        Route::get('attendance/daily', [\App\Http\Controllers\Backend\HR\AttendanceController::class, 'daily'])->name('attendance.daily');
+        Route::post('attendance/mark-day', [\App\Http\Controllers\Backend\HR\AttendanceController::class, 'markDay'])->name('attendance.mark-day');
+        Route::post('attendance/mark-single', [\App\Http\Controllers\Backend\HR\AttendanceController::class, 'markSingle'])->name('attendance.mark-single');
+        // Payroll
+        Route::get('payroll', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'index'])->name('payroll.index');
+        Route::post('payroll/generate', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::put('payroll/{id}', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'update'])->name('payroll.update');
+        Route::put('payroll/{id}/mark-paid', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'markPaid'])->name('payroll.mark-paid');
+        Route::get('payroll/{id}/payslip', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'payslip'])->name('payroll.payslip');
+        Route::get('payroll/commissions', [\App\Http\Controllers\Backend\HR\PayrollController::class, 'commissions'])->name('payroll.commissions');
+    });
    // start pos
     Route::get('/get/products', [CartController::class, 'getProducts'])->name('getProducts');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

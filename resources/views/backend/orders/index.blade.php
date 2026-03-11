@@ -20,6 +20,8 @@
                 <th>Total {{currency()->symbol??''}}</th>
                 <th>Paid {{currency()->symbol??''}}</th>
                 <th>Due {{currency()->symbol??''}}</th>
+                <th>Packed By</th>
+                <th>Delivered By</th>
                 <th>Status</th>
                 <th data-orderable="false">Action</th>
               </tr>
@@ -82,6 +84,14 @@
          {
           data: 'due',
           name: 'due'
+        },
+        {
+          data: 'packed_by',
+          name: 'packed_by'
+        },
+        {
+          data: 'delivered_by',
+          name: 'delivered_by'
         },
         {
           data: 'status',

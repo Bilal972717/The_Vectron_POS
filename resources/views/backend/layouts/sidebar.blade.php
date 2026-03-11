@@ -291,6 +291,49 @@ $route = request()->route()->getName();
                 </ul>
             </li> 
             @endif
+            {{-- HR: Payroll, Attendance, Staff --}}
+            @if(auth()->user()->hasAnyPermission(['staff_view','attendance_view','payroll_view']))
+            <li class="nav-header">HR & PAYROLL</li>
+            <li class="nav-item">
+                <a href="#" class="nav-link {{ request()->routeIs(['backend.admin.hr.*']) ? 'menu-open' : '' }}">
+                    <i class="fas fa-users-cog nav-icon"></i>
+                    <p>HR Management <i class="fas fa-angle-left right"></i></p>
+                </a>
+                <ul class="nav nav-treeview">
+                    @can('staff_view')
+                    <li class="nav-item">
+                        <a href="{{ route('backend.admin.hr.staff.index') }}" class="nav-link {{ request()->routeIs('backend.admin.hr.staff.*') ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i><p>Staff</p>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('attendance_view')
+                    <li class="nav-item">
+                        <a href="{{ route('backend.admin.hr.attendance.daily') }}" class="nav-link {{ request()->routeIs('backend.admin.hr.attendance.*') ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i><p>Attendance</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('backend.admin.hr.attendance.index') }}" class="nav-link {{ request()->routeIs('backend.admin.hr.attendance.index') ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i><p>Monthly Sheet</p>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('payroll_view')
+                    <li class="nav-item">
+                        <a href="{{ route('backend.admin.hr.payroll.index') }}" class="nav-link {{ request()->routeIs('backend.admin.hr.payroll.*') ? 'active' : '' }}">
+                            <i class="fas fa-circle nav-icon"></i><p>Payroll</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('backend.admin.hr.payroll.commissions') }}" class="nav-link">
+                            <i class="fas fa-circle nav-icon"></i><p>Commissions</p>
+                        </a>
+                    </li>
+                    @endcan
+                </ul>
+            </li>
+            @endif
             {{-- settings --}}
             @if (auth()->user()->hasAnyPermission([
             //currency

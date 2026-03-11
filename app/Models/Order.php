@@ -17,6 +17,7 @@ class Order extends Model
         'promised_payment_date' => 'date',
         'is_delivered' => 'boolean',
     ];
+
     public function products()
     {
         return $this->hasMany(OrderProduct::class);
@@ -25,12 +26,20 @@ class Order extends Model
     {
         return $this->hasMany(OrderTransaction::class);
     }
-    public function customer(){
+    public function customer()
+    {
         return $this->belongsTo(Customer::class);
     }
     public function getTotalItemAttribute()
     {
         return $this->products()->sum('quantity');
     }
-   
+    public function packer()
+    {
+        return $this->belongsTo(User::class, 'packed_by');
+    }
+    public function deliverer()
+    {
+        return $this->belongsTo(User::class, 'delivered_by');
+    }
 }

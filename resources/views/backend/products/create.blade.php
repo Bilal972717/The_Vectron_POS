@@ -20,11 +20,20 @@
           </div>
           <div class="mb-3 col-md-6">
             <label for="sku" class="form-label">
-              Sku
+              Barcode (EAN-13)
               <span class="text-danger">*</span>
             </label>
-            <input type="text" class="form-control" placeholder="Enter sku" name="sku"
-              value="{{ old('sku') }}" required>
+            <div class="input-group">
+              <input type="text" class="form-control" name="sku" id="sku_field"
+                value="{{ old('sku', $autoSku ?? '') }}" required maxlength="13" pattern="\d{13}" title="Must be 13 digits">
+              <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary" id="regenerate_sku" title="Generate new EAN-13">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+            <small class="text-muted">Auto-generated EAN-13. You can change it or regenerate.</small>
+            <div id="barcode_preview" class="mt-2"></div>
           </div>
           <div class="mb-3 col-md-6">
             <label for="brand_id" class="form-label">
@@ -198,10 +207,26 @@
 <script src="{{ asset('js/image-field.js') }}"></script>
 <script>
   $(function() {
-    //Date picker
-    $('#reservationdate').datetimepicker({
-      format: 'YYYY-MM-DD'
+    $('#reservationdate').datetimepicker({ format: 'YYYY-MM-DD' });
+
+    // Barcode live preview
+    function updateBarcodePreview(sku) {
+      if (sku.length === 13 && /^\d{13}$/.test(sku)) {
+        $('#barcode_preview').html('<img src="/admin/products/barcode-svg?sku=' + encodeURIComponent(sku) + '" style="max-height:60px;" alt="barcode">');
+      } else {
+        $('#barcode_preview').html('');
+      }
+    }
+    updateBarcodePreview($('#sku_field').val());
+    $('#sku_field').on('input', function() { updateBarcodePreview($(this).val()); });
+
+    // Regenerate EAN-13
+    $('#regenerate_sku').on('click', function() {
+      $.get('/admin/products/generate-sku', function(data) {
+        $('#sku_field').val(data.sku);
+        updateBarcodePreview(data.sku);
+      });
     });
-  })
+  });
 </script>
 @endpush

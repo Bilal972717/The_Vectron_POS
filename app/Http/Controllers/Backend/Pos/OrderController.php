@@ -19,7 +19,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $orders = Order::with('customer')->get();
+            $orders = Order::with('customer', 'packer', 'deliverer')->get();
             return DataTables::of($orders)
                 ->addIndexColumn()
                 ->addColumn('saleId', fn($data) => "#" . $data->id)
@@ -30,14 +30,15 @@ class OrderController extends Controller
                 ->addColumn('total', fn($data) => number_format($data->total, 2, '.', ','))
                 ->addColumn('paid', fn($data) => number_format($data->paid, 2, '.', ','))
                 ->addColumn('due', fn($data) => number_format($data->due, 2, '.', ','))
+                ->addColumn('packed_by', fn($data) => $data->packer->name ?? '<span class="text-muted">—</span>')
+                ->addColumn('delivered_by', fn($data) => $data->deliverer->name ?? '<span class="text-muted">—</span>')
                 ->addColumn('status', fn($data) => $data->status
                     ? '<span class="badge bg-primary">Paid</span>'
                     : '<span class="badge bg-danger">Due</span>')
                 ->addColumn('action', function ($data) {
                     $buttons = '';
-
+                    $buttons .= '<a class="btn btn-info btn-sm" href="' . route('backend.admin.orders.detail', $data->id) . '"><i class="fas fa-eye"></i> Detail</a>';
                     $buttons .= '<a class="btn btn-success btn-sm" href="' . route('backend.admin.orders.invoice', $data->id) . '"><i class="fas fa-file-invoice"></i> Invoice</a>';
-
                     $buttons .= '<a class="btn btn-secondary btn-sm" href="' . route('backend.admin.orders.pos-invoice', $data->id) . '"><i class="fas fa-file-invoice"></i> Pos Invoice</a>';
                     if (!$data->status) {
                         $buttons .= '<a class="btn btn-warning btn-sm" href="' . route('backend.admin.due.collection', $data->id) . '"><i class="fas fa-receipt"></i> Due Collection</a>';
@@ -45,7 +46,7 @@ class OrderController extends Controller
                     $buttons .= '<a class="btn btn-primary btn-sm" href="' . route('backend.admin.orders.transactions', $data->id) . '"><i class="fas fa-exchange-alt"></i> Transactions</a>';
                     return $buttons;
                 })
-                ->rawColumns(['saleId', 'customer', 'item', 'sub_total', 'discount', 'total', 'paid', 'due', 'status', 'action'])
+                ->rawColumns(['saleId', 'customer', 'item', 'sub_total', 'discount', 'total', 'paid', 'due', 'packed_by', 'delivered_by', 'status', 'action'])
                 ->toJson();
         }
         return view('backend.orders.index');
@@ -85,6 +86,9 @@ class OrderController extends Controller
             // Feature 12: delivery status
             'is_delivered' => ['nullable', 'boolean'],
             'delivery_note' => ['nullable', 'string', 'max:255'],
+            // Staff assignments
+            'packed_by'    => ['nullable', 'exists:users,id'],
+            'delivered_by' => ['nullable', 'exists:users,id'],
             // Feature 2: manual prices per product keyed by product_id
             'manual_prices' => ['nullable', 'array'],
             'manual_prices.*' => ['nullable', 'numeric', 'min:0'],
@@ -103,6 +107,9 @@ class OrderController extends Controller
             // Feature 12
             'is_delivered' => $request->boolean('is_delivered'),
             'delivery_note' => $request->delivery_note,
+            // Staff packer & deliverer
+            'packed_by'    => $request->packed_by ?: null,
+            'delivered_by' => $request->delivered_by ?: null,
         ]);
         $totalAmountOrder = 0;
         $orderDiscount = $request->order_discount;
@@ -186,9 +193,27 @@ class OrderController extends Controller
     {
         //
     }
+
+    /**
+     * Order detail page — shows all info including packer, deliverer, items, totals.
+     */
+    public function detail($id)
+    {
+        $order = Order::with([
+            'customer',
+            'products.product.category',
+            'products.product.unit',
+            'packer',
+            'deliverer',
+            'transactions',
+        ])->findOrFail($id);
+
+        return view('backend.orders.detail', compact('order'));
+    }
+
     public function invoice($id)
     {
-        $order = Order::with(['customer', 'products.product'])->findOrFail($id);
+        $order = Order::with(['customer', 'products.product', 'packer', 'deliverer'])->findOrFail($id);
         // Feature 6: increment print count so reprints show "Duplicate"
         $order->increment('print_count');
         $isDuplicate = $order->print_count > 1;
@@ -241,7 +266,7 @@ class OrderController extends Controller
 
     public function posInvoice($id)
     {
-        $order = Order::with(['customer', 'products.product'])->findOrFail($id);
+        $order = Order::with(['customer', 'products.product', 'packer', 'deliverer'])->findOrFail($id);
         $order->increment('print_count');
         $isDuplicate = $order->print_count > 1;
         $maxWidth = readConfig('receiptMaxwidth')??'300px';
